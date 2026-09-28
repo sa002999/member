@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>會員資料示範</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+        color: #202938;
+        background: #f3f6fa;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .card {
+        width: min(100%, 440px);
+        padding: 36px;
+        border: 1px solid #e5eaf0;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 16px 48px #26354a12;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.5rem;
+      }
+      .intro {
+        margin: 0 0 28px;
+        color: #667085;
+        font-size: 0.95rem;
+      }
+      .photo-wrap {
+        display: grid;
+        justify-items: center;
+        gap: 14px;
+        margin-bottom: 30px;
+      }
+      .photo {
+        width: 144px;
+        height: 144px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border: 2px dashed #cbd5e1;
+        border-radius: 50%;
+        background: #f8fafc;
+        color: #94a3b8;
+      }
+      .photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .photo svg {
+        width: 52px;
+        height: 52px;
+      }
+      .photo.has-image svg {
+        display: none;
+      }
+      .upload {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 10px;
+        background: #315fe8;
+        color: white;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .upload:hover {
+        background: #244dcc;
+      }
+      .upload:focus-within,
+      .upload:focus-visible {
+        outline: 3px solid #b7c8ff;
+        outline-offset: 3px;
+      }
+      .hint,
+      .error {
+        min-height: 1.25em;
+        margin: 0;
+        font-size: 0.82rem;
+        text-align: center;
+      }
+      .hint {
+        color: #667085;
+      }
+      .error {
+        color: #b42318;
+      }
+      .details {
+        padding-top: 22px;
+        border-top: 1px solid #edf0f4;
+      }
+      .field + .field {
+        margin-top: 18px;
+      }
+      dt {
+        margin-bottom: 5px;
+        color: #667085;
+        font-size: 0.85rem;
+      }
+      dd {
+        margin: 0;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      @media (max-width: 480px) {
+        .card {
+          padding: 28px 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>會員資料</h1>
+      <p class="intro">這是會員頁面的功能示範</p>
+
+      <section class="photo-wrap" aria-label="會員照片">
+        <div class="photo" id="photo" role="img" aria-label="尚未設定會員照片">
+          <svg id="placeholder" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" />
+            <path
+              d="M4.5 20c.7-3.6 3.5-5.5 7.5-5.5s6.8 1.9 7.5 5.5"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round" />
+          </svg>
+          <img id="preview" alt="會員照片預覽" hidden />
+        </div>
+        <label class="upload" for="photo-input">選擇會員照片</label>
+        <input class="visually-hidden" id="photo-input" type="file" accept="image/jpeg,image/png,image/webp" />
+        <p class="hint" id="message" aria-live="polite">支援 JPG、PNG、WEBP，檔案上限 5 MB</p>
+      </section>
+
+      <dl class="details">
+        <div class="field">
+          <dt>姓名</dt>
+          <dd>{{ name }}</dd>
+        </div>
+        <div class="field">
+          <dt>Email</dt>
+          <dd>{{ email }}</dd>
+        </div>
+      </dl>
+    </main>
+
+    <script>
+      const input = document.querySelector("#photo-input");
+      const preview = document.querySelector("#preview");
+      const placeholder = document.querySelector("#placeholder");
+      const photo = document.querySelector("#photo");
+      const message = document.querySelector("#message");
+      const maxSize = 5 * 1024 * 1024;
+      let currentImageUrl;
+
+      input.addEventListener("change", () => {
+        const file = input.files[0];
+        if (!file) return;
+
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+          message.textContent = "檔案格式不符，請選擇 JPG、PNG 或 WEBP 圖片。";
+          message.className = "error";
+          input.value = "";
+          return;
+        }
+        if (file.size > maxSize) {
+          message.textContent = "照片超過 5 MB，請選擇較小的檔案。";
+          message.className = "error";
+          input.value = "";
+          return;
+        }
+
+        if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
+        currentImageUrl = URL.createObjectURL(file);
+        preview.src = currentImageUrl;
+        preview.hidden = false;
+        photo.classList.add("has-image");
+        photo.setAttribute("aria-label", "已設定會員照片");
+        message.textContent = "照片已更新，僅在此頁面預覽。";
+        message.className = "hint";
+      });
+    </script>
+  </body>
+</html>
